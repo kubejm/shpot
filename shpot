@@ -42,7 +42,7 @@ function spotify_current {
   | grep -Pzo "\"xesam:(artist|title)\"\n".*"\n" \
   | grep -Pzo "\"(?!xesam)(.*)\"\n" \
   | tr -d '"' \
-  | sed '{N;s/\n/ --> /;}'
+  | sed '{N;s/\n/: /;}'
 }
 
 function help {
