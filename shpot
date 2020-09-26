@@ -1,0 +1,85 @@
+#!/bin/bash
+
+SPTFY_DEST=org.mpris.MediaPlayer2.spotify
+SPTFY_OBJ_PATH=/org/mpris/MediaPlayer2
+SPTFY_INTERFACE=org.mpris.MediaPlayer2.Player
+
+function spotify_send {
+  dbus-send --session --type=method_call --print-reply \
+         --dest=$SPTFY_DEST \
+         $SPTFY_OBJ_PATH \
+         "$SPTFY_INTERFACE.$1" \
+         &> /dev/null
+}
+
+function spotify_query {
+  dbus-send --session --type=method_call --print-reply \
+         --dest=$SPTFY_DEST \
+         $SPTFY_OBJ_PATH \
+         org.freedesktop.DBus.Properties.GetAll \
+         string:"$SPTFY_INTERFACE"
+}
+
+function spotify_play {
+  spotify_send Play
+}
+
+function spotify_stop {
+  spotify_send Stop
+}
+
+function spotify_next {
+  spotify_send Next
+}
+
+function spotify_previous {
+  spotify_send Previous
+}
+
+function spotify_current {
+  spotify_query \
+  | grep -o "string \"\(.*\)\"" \
+  | grep -Pzo "\"xesam:(artist|title)\"\n".*"\n" \
+  | grep -Pzo "\"(?!xesam)(.*)\"\n" \
+  | tr -d '"' \
+  | sed '{N;s/\n/ --> /;}'
+}
+
+function help {
+  echo "usage: shpot [command]"
+  echo ""
+  echo "commands:"
+  echo "  play     -- resume playing"
+  echo "  stop     -- stop playing"
+  echo "  next     -- play next song"
+  echo "  previous -- play previous song"
+  echo "  current  -- print song playing"
+}
+
+case $1 in
+
+  play)
+    spotify_play
+    ;;
+
+  stop)
+    spotify_stop
+    ;;
+
+  next)
+    spotify_next
+    ;;
+
+  previous)
+    spotify_previous
+    ;;
+
+  current)
+    spotify_current
+    ;;
+
+  *)
+    help
+    ;;
+
+esac
